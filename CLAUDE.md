@@ -17,6 +17,14 @@
 - 截圖比對的容許差異用像素數（`maxDiffPixels`），不用比例：比例在整頁截圖上太寬鬆，改一個數字也抓不到。基準圖要在 CI 的環境產生。
 - 本機的 Chromium 版本和 `@playwright/test` 不同時，用環境變數 `PW_CHROMIUM_EXECUTABLE` 指定執行檔。
 
+## CI（`.github/workflows/`）
+
+- `e2e`（功能測試）、`a11y`（axe）、`visual`（截圖比對）三個 workflow，用 tag 分：`@a11y`、`@visual`，其他都算 e2e。新的 axe 測試加 `@a11y`，截圖測試加 `@visual`。
+- 觸發：網站部署後的 `repository_dispatch`（`site-deployed`）、每天日本時間早上、push、PR。
+- 正式網址只寫在 `.github/actions/setup/action.yml`。
+- `visual` 不算進網站頁尾的 badge：內容一改截圖就會變，要等基準圖更新。基準圖用 `visual` workflow 的 `update` 產生，推到 `update-snapshots/*` 分支再開 PR。
+- workflow 裡不要把 `github.event.*` 的值直接嵌進 `run:`，先放進 `env:`。
+
 ## 已定案的決策
 
 已經拍板的事，實作時不用再問。
