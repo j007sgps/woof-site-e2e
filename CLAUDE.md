@@ -14,7 +14,7 @@
 
 - 頁面清單從三語首頁沿著站內連結收集（`tests/support/site.ts` 的 `crawl`），新增的文章、作品頁會自動被測到。
 - 判斷用網站對外的行為：HTML、`/metrics.json`、計算後的樣式（例如背景亮度），不寫死色碼或私有 repo 的檔名。
-- 截圖比對的容許差異用像素數（`maxDiffPixels`），不用比例：比例在整頁截圖上太寬鬆，改一個數字也抓不到。基準圖要在 CI 的環境產生。
+- 截圖比對的容許差異用像素數（`maxDiffPixels`），不用比例：比例在整頁截圖上太寬鬆，改一個數字也抓不到。基準圖要在 CI 的環境產生。頁尾的 CI badge 寬度會隨狀態變，截圖前固定大小再遮起來。
 - 本機的 Chromium 版本和 `@playwright/test` 不同時，用環境變數 `PW_CHROMIUM_EXECUTABLE` 指定執行檔。
 
 ## CI（`.github/workflows/`）
