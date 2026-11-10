@@ -1,0 +1,67 @@
+# 首頁與 AI Lab 首頁的截圖比對。內容一改基準圖就會變，所以不算進頁尾的 badge。
+# 更新基準圖：Actions → visual → Run workflow，勾選 update。新的圖會推到 update-snapshots/<run id> 分支，開 PR review。
+name: visual
+
+on:
+  repository_dispatch:
+    types: [site-deployed]
+  schedule:
+    - cron: '33 22 * * *'
+  workflow_dispatch:
+    inputs:
+      update:
+        description: 重新產生基準圖並推到新分支
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.update) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - run: npm run test:visual
+      - uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-visual
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  update:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.update }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - run: npm run test:update-snapshots
+      - name: 把基準圖推到新分支
+        run: |
+          git add tests/visual.spec.ts-snapshots
+          if git diff --cached --quiet; then
+            echo "基準圖沒有變化"
+            exit 0
+          fi
+          branch="update-snapshots/${{ github.run_id }}"
+          git switch -c "$branch"
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "visual：更新基準圖（run ${{ github.run_id }}）"
+          git push origin "$branch"
+          echo "### 已推到 $branch，請開 PR review。" >> "$GITHUB_STEP_SUMMARY"

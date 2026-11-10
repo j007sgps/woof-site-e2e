@@ -1,0 +1,24 @@
+name: Setup
+description: 安裝 Node、套件、Chromium，並決定測試的網址
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v5
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+    - run: npm ci
+      shell: bash
+    - run: npx playwright install --with-deps chromium
+      shell: bash
+    # 測試對象是正式網站。換網域時只改這裡
+    - run: echo "BASE_URL=${BASE_URL:-https://woof-site-eosin.vercel.app}" >> "$GITHUB_ENV"
+      shell: bash
+    # 外部送來的值不直接嵌進指令，先放進環境變數
+    - name: 這次是哪個部署觸發的
+      if: github.event_name == 'repository_dispatch'
+      env:
+        SITE_SHA: ${{ github.event.client_payload.sha }}
+        SITE_URL: ${{ github.event.client_payload.url }}
+      run: echo "site commit $SITE_SHA ($SITE_URL)"
+      shell: bash

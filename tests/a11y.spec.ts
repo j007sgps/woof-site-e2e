@@ -8,7 +8,7 @@ for (const colorScheme of ['dark', 'light'] as const) {
   test.describe(`${colorScheme} 主題`, () => {
     test.use({ colorScheme });
 
-    test(`axe：所有頁面 0 violations`, async ({ page, request }) => {
+    test('axe：所有頁面 0 violations', { tag: '@a11y' }, async ({ page, request }) => {
       test.setTimeout(240_000);
       for (const path of await crawl(request)) {
         await page.goto(path);
